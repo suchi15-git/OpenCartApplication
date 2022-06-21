@@ -1,0 +1,33 @@
+name: Open Cart Test Regression Suite
+verbose: 4
+threadCount: 4
+parallel: tests
+configFailurePolicy: skip
+listeners:
+  - com.qa.opencart.listeners.ExtentReportListener
+  - com.qa.opencart.listeners.TestAllureListener
+tests:
+  - name: Open Cart Login Page Test
+    verbose: 4
+    parallel: tests
+    classes:
+      - com.qa.opencart.tests.LoginPageTest
+
+  - name: Open Cart Account Page Test
+    verbose: 4
+    parallel: tests
+    classes:
+      - com.qa.opencart.tests.AccountsPageTest
+
+  - name: Open Cart Product Page Test
+    verbose: 4
+    parallel: tests
+    classes:
+      - com.qa.opencart.tests.ProductInfoTest
+
+  - name: Open Cart Register Page Test
+    verbose: 4
+    parallel: tests
+    classes:
+      - com.qa.opencart.tests.RegisterPageTest
+
