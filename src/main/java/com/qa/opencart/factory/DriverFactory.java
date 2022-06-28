@@ -14,6 +14,8 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.safari.SafariDriver;
 
+import com.qa.opencart.exceptions.FrameworkException;
+
 import io.github.bonigarcia.wdm.WebDriverManager;
 
 /*
@@ -25,8 +27,8 @@ public class DriverFactory {
 	WebDriver driver;
 	Properties prop;
 	OptionsManager optionsManager;
-	public static ThreadLocal <WebDriver> tlDriver = new ThreadLocal<WebDriver>();
-	
+	public static ThreadLocal<WebDriver> tlDriver = new ThreadLocal<WebDriver>();
+
 	/*
 	 * This method is used to initialize the driver on the basis of given browser
 	 * 
@@ -38,15 +40,15 @@ public class DriverFactory {
 
 	public WebDriver init_driver(Properties prop) {
 		String browserName = prop.getProperty("browser");
-		
+
 		System.out.println("The browsername is:" + browserName);
-		
+
 		optionsManager = new OptionsManager(prop);
-	
+
 		if (browserName.equalsIgnoreCase("chrome")) {
 			WebDriverManager.chromedriver().setup();
-			//driver = new ChromeDriver(	optionsManager.getChromeOptions());
-			tlDriver.set(new ChromeDriver(	optionsManager.getChromeOptions()));
+			// driver = new ChromeDriver( optionsManager.getChromeOptions());
+			tlDriver.set(new ChromeDriver(optionsManager.getChromeOptions()));
 		}
 
 		else if (browserName.equalsIgnoreCase("firefox")) {
@@ -69,39 +71,99 @@ public class DriverFactory {
 		getDriver().get(prop.getProperty("url"));
 		return getDriver();
 	}
-	
+
 	public synchronized WebDriver getDriver() {
 		return tlDriver.get();
 	}
-	
+
 	/**
-	 * This method is used to initialize the properties from the respective config file
+	 * This method is used to initialize the properties from the respective config
+	 * file
+	 * 
 	 * @return this returns properties class object with all the config properties
 	 */
 
-	public  Properties init_properties() {
-		try {
-			FileInputStream ip = new FileInputStream("C:\\Users\\Suchita Kadge\\eclipse-workspace\\Feb2022POMSessions\\src\\testresources\\ConfigFolder\\config.properties");
-			prop = new Properties();
-			prop.load(ip);
-		} catch (FileNotFoundException e) {
+	public Properties init_properties() {
+		FileInputStream ip = null;
+		prop = new Properties();
 
-			e.printStackTrace();
-		} catch (IOException e) {
+		// mvn command line argument
+		// mvn clean install -Denv="qa"
 
-			e.printStackTrace();
+		String envName = System.getProperty("env");
+		System.out.println("Running tests on environment:" + envName);
+
+		if (envName == null) {
+			System.out.println("No env is given....,hence running it on QA env");
+			try {
+				ip = new FileInputStream(
+						"C:\\Users\\Suchita Kadge\\eclipse-workspace\\Feb2022POMSessions\\src\\testresources\\ConfigFolder\\config.properties");
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		} else {
+			try {
+				switch (envName.toLowerCase()) {
+				case "qa":
+
+					ip = new FileInputStream(
+							"C:\\Users\\Suchita Kadge\\eclipse-workspace\\Feb2022POMSessions\\src\\testresources\\ConfigFolder\\qa.config.properties");
+					break;
+				case "stage":
+					ip = new FileInputStream(
+							"C:\\Users\\Suchita Kadge\\eclipse-workspace\\Feb2022POMSessions\\src\\testresources\\ConfigFolder\\stage.config.properties");
+
+					break;
+				case "prod":
+					ip = new FileInputStream(
+							"C:\\Users\\Suchita Kadge\\eclipse-workspace\\Feb2022POMSessions\\src\\testresources\\ConfigFolder\\config.properties");
+
+					break;
+				default:
+					System.out.println("Please pass the right environment value..." + envName);
+					throw new FrameworkException("No env found...");
+				}
+
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			catch(FrameworkException e) {
+				e.printStackTrace();
+			}
+			
+			try {
+				prop.load(ip);
+			}catch(IOException e) {
+				e.printStackTrace();
+			}
+
+//		try {
+//			 ip = new FileInputStream("C:\\Users\\Suchita Kadge\\eclipse-workspace\\Feb2022POMSessions\\src\\testresources\\ConfigFolder\\config.properties");
+//		
+//			prop.load(ip);
+//		} catch (FileNotFoundException e) {
+//
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//
+//			e.printStackTrace();
+//		}
+
+	
 		}
-		
 		return prop;
+
 	}
-	
+
 	/*
-	 * Takes screenshot 
+	 * Takes screenshot
 	 */
-	
+
 	public String getScreenshot() {
-		File srcFile = ((TakesScreenshot)getDriver()).getScreenshotAs(OutputType.FILE);
-		String path = "./screenshots/" +System.currentTimeMillis()+ ".png";
+		File srcFile = ((TakesScreenshot) getDriver()).getScreenshotAs(OutputType.FILE);
+		String path = "./screenshots/" + System.currentTimeMillis() + ".png";
 		File destination = new File(path);
 		try {
 			FileUtils.copyFile(srcFile, destination);
